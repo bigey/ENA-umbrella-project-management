@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # Author: Frederic BIGEY - INRAE
-# Last update: 2026-03-06
+# Last update: 2026-03-09
 
 
 #================================================================================
-# PARAMETERS 
+# PARAMETERS
 #================================================================================
 
 # Submit or test?
@@ -16,8 +16,8 @@ set -euo pipefail
 SUBMISSION="false"
 
 # CREDENTIAL FILE
-# File containing the credentials. 
-# One line containing: 
+# File containing the credentials.
+# One line containing:
 # username password
 CREDENDIAL=".credential"
 
@@ -39,33 +39,46 @@ UMBRELLA_PROJECT_XML="blank-umbrella-project.xml"
 #===============================================================================
 
 # CHECKING INPUT FILES
- 
+echo "# Checking input files..."
+
 # Check if the credential file exists
 if [ ! -f "$CREDENDIAL" ]; then
-    echo "Credential file '$CREDENDIAL' not found!"
+    echo "  ERROR: Credential file '$CREDENDIAL' not found!"
     exit 1
 else
-    echo "Credential file '$CREDENDIAL' found."
+    echo "  Credential file '$CREDENDIAL' found."
 fi
 
 # CHECK IF XML FILES WERE AVAILABLE
-if [ -f ${SUBMISSION_XML} ]; then
-  echo "Submission XML file: $SUBMISSION_XML is available."
-  files="$files -F SUBMISSION=@${SUBMISSION_XML} "
-else
-  echo "ERROR: Submission XML file: $SUBMISSION_XML not found."
-fi
+files="" # used to pass files to curl (-F option)
 
-if [ -f ${UMBRELLA_PROJECT_XML} ]; then
-  echo "Umbrella project XML file: $UMBRELLA_PROJECT_XML is available."
-  files="$files -F UMBRELLA_PROJECT=@${UMBRELLA_PROJECT_XML} "
+if [ -f ${SUBMISSION_XML} ]; then
+
+    echo "  Submission XML file: $SUBMISSION_XML is available."
+    files="$files -F SUBMISSION=@${SUBMISSION_XML} "
+
+    if [ ${SUBMISSION_XML} == "release-submission.xml" ]; then
+
+        echo "  This is a release submission and no project XML file is needed."
+
+    elif [ -f ${UMBRELLA_PROJECT_XML} ]; then
+
+        echo "  Umbrella project XML file: $UMBRELLA_PROJECT_XML is available."
+        files="$files -F PROJECT=@${UMBRELLA_PROJECT_XML}"
+        
+    else
+        
+        echo "  ERROR: Project XML file: ${UMBRELLA_PROJECT_XML} not found!"
+    fi
 else
-  echo "No umbrella project XML file found. This is probably a release submission."
+    
+    echo "  ERROR: Submission XML file: $SUBMISSION_XML not found!"
+    exit 1
 fi
 
 
 #===============================================================================
-# ENA SUBMISSION 
+# ENA SUBMISSION
 #===============================================================================
 
 # ENA SERVERS
@@ -75,57 +88,57 @@ URL_PROD="https://www.ebi.ac.uk/ena/submit/drop-box/submit/"
 # SELECT SERVER
 if [ $SUBMISSION = "true" ]
 then
-  URL=$URL_PROD
-  echo "This is a real submission..."
+    URL=$URL_PROD
+    echo "# This is a real submission..."
 else
-  URL=$URL_TEST
-  echo "This a test submission..."
+    URL=$URL_TEST
+    echo "# This a test submission, and files will be discarded within 24 hours..."
 fi
 
 # IMPORT CREDENTIALS
 read user pass < $CREDENDIAL
 
-# ENA SUBMISSION 
-# curl -u Username:Password -F "SUBMISSION=@submission.xml" -F "PROJECT=@umbrella.xml" "https://www.ebi.ac.uk/ena/submit/drop-box/submit/"
-echo
+# ENA SUBMISSION
 echo "# Submit XML files to ENA server..."
-echo
 curl -u ${user}:${pass} ${files} --url ${URL} > server-receipt.xml
-echo
-
 
 # CHECK SERVER RESPONSE
 if grep "RECEIPT" server-receipt.xml &> /dev/null; then
-  echo "Server connection was ok."
-  success=$(perl -ne 'm/success="(true|false)"/ && print $1' server-receipt.xml)
-  
-  if [ $success = "true" ]
-  then
-    echo "Submission was successful."
+    
+    echo "    - server connection was ok."
+    success=$(perl -ne 'm/success="(true|false)"/ && print $1' server-receipt.xml)
 
-    # PARSE RECEIPT XML RESPONSE
-    ./parse-receipt.py -t -o server-receipt.txt server-receipt.xml
+    if [ $success = "true" ]; then
 
-    echo "See the server receipts returned: "
-    echo "   - server-receipt.xml (original receipt)"
-    echo "   - server-receipt.txt (tabular format)" 
+        echo "# Submission was successful."
 
-  else
-    echo "Submission failed!"
-    echo "See server receipt XML returned: server-receipt.xml."
-    echo "Check the receipt for error messages and after making corrections, "
-    echo "  try the submission again."
-    echo
-    exit 2
-  fi
+        # PARSE RECEIPT XML RESPONSE
+        ./parse-receipt.py -t -o server-receipt.txt server-receipt.xml
+
+        echo "  See the server receipts returned: "
+        echo "     - server-receipt.xml (original receipt)"
+        echo "     - server-receipt.txt (tabular format)"
+
+    else
+
+        echo "# Submission failed!"
+        
+        echo "    - see server receipt XML returned: server-receipt.xml."
+        echo "    - check the receipt for error messages and after making corrections, "
+        echo "        try the submission again."
+        echo
+        exit 2
+
+    fi
 
 else
-  echo "Server connection error!"
-  echo "See server receipt file: server-receipt.xml."
-  echo
-  exit 1
+
+    echo "# Server connection error!"
+    echo "    - see server receipt file: server-receipt.xml."
+    echo
+    exit 1
 fi
 
 # END
 echo
-echo "Done."
+echo "# Done"
