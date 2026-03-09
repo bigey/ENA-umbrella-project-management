@@ -1,0 +1,8 @@
+<PROJECT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <PROJECT center_name="" alias="TODO: alias">
+        <NAME>TODO: Name text here</NAME>
+        <TITLE>TODO:Title text here</TITLE>
+        <DESCRIPTION>TODO: Description text here</DESCRIPTION>
+        <UMBRELLA_PROJECT/>
+    </PROJECT>
+</PROJECT_SET>

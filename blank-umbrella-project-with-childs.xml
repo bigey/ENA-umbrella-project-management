@@ -1,0 +1,16 @@
+<PROJECT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <PROJECT center_name="" alias="TODO: alias">
+        <NAME>TODO: Name text here</NAME>
+        <TITLE>TODO:Title text here</TITLE>
+        <DESCRIPTION>TODO: Description text here</DESCRIPTION>
+        <UMBRELLA_PROJECT/>
+            <RELATED_PROJECTS>
+                <RELATED_PROJECT>
+                    <CHILD_PROJECT accession="PRJEBxxxxxx"/>
+                </RELATED_PROJECT>
+                <RELATED_PROJECT>
+                    <CHILD_PROJECT accession="PRJEBxxxxxx"/>
+                </RELATED_PROJECT>
+            </RELATED_PROJECTS>
+    </PROJECT>
+</PROJECT_SET>
