@@ -26,23 +26,19 @@ def set_up_argparse():
 	return opts
 
 
-def extract(element, store = { "SUBMISSION": [], "PROJECT": [], "SAMPLE": [], 
-    "EXPERIMENT": [], "RUN": [], }):
+def extract(element, store = { "SUBMISSION": [], "PROJECT": [] }):
 
     for child in element.children:
         
-        if child._name in ["SUBMIT", "EXPERIMENT", "RUN"]:
-            store[child._name].append([child["alias"], child["accession"]])
-        
-        if child._name in ["PROJECT", "SAMPLE"]:
-            store[child._name].append([child["alias"], child["accession"], 
-				child.EXT_ID["accession"]])
-
+        if child._name == "SUBMISSION":
+            store[child._name].append([ child["alias"], child["accession"] ])
+        elif child._name == "PROJECT":
+            store[child._name].append([ child["alias"], child["accession"], child["status"], child["holdUntilDate"] ])
     return store
 
 
 def output(data_dict, tabular = True, fh = sys.stdout):
-	if tabular == True:
+	if tabular:
 		for key, arrays in data_dict.items():
 			for array in arrays:
 				string = key + " " + " ".join( array )
