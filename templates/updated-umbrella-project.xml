@@ -1,0 +1,8 @@
+<PROJECT_SET xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <PROJECT center_name="" alias="modified alias" accession="PRJEBxxxxxx">
+        <NAME>Modified name text here</NAME>
+        <TITLE>Modified title text here</TITLE>
+        <DESCRIPTION>Modified description text here</DESCRIPTION>
+        <UMBRELLA_PROJECT />
+    </PROJECT>
+</PROJECT_SET>

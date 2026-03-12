@@ -4,7 +4,7 @@
             <ADD/>
         </ACTION>
         <ACTION>
-            <HOLD HoldUntilDate="TODO: release date"/>
+            <HOLD HoldUntilDate="YYYY-MM-DD"/>
         </ACTION>
     </ACTIONS>
 </SUBMISSION> 
