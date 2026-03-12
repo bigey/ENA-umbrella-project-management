@@ -4,31 +4,41 @@ Template files and scripts to create and manage umbrella projects in the [Europe
 
 ## Overview
 
-ENA umbrella projects are top-level projects used to group related sub-projects (child projects) under a single accession. This repository provides XML templates and a Bash script to handle the full lifecycle of an umbrella project via the [ENA Webin REST submission API](https://www.ebi.ac.uk/ena/submit/drop-box/submit/).
+ENA umbrella projects are top-level projects used to group related sub-projects (child projects) under a single accession. This repository provides XML templates and scripts to handle the full lifecycle of an umbrella project via the [ENA Webin REST submission API](https://www.ebi.ac.uk/ena/submit/drop-box/submit/).
 
 Covered scenarios:
 
 - **Create** a new umbrella project (standalone or with child sub-projects)
-- **Update** an existing umbrella project
+- **Update** an existing umbrella project (metadata and/or child sub-projects)
 - **Release** (make public) an umbrella project
 
 ## Repository Contents
 
 | File | Description |
 |------|-------------|
-| `blank-umbrella-project.xml` | Template for a new standalone umbrella project |
-| `blank-umbrella-project-with-childs.xml` | Template for a new umbrella project with child sub-projects |
-| `new-submission.xml` | Submission action file for creating a new project (`ADD` + `HOLD`) |
-| `update-submission.xml` | Submission action file for updating an existing project (`MODIFY`) |
-| `release-submission.xml` | Submission action file for releasing a project (`RELEASE`) |
-| `umbrella-project-managment.sh` | Main Bash script to submit XML files to the ENA API |
+| `tui.sh` | Interactive TUI |
 | `parse-receipt.py` | Python script to parse the XML receipt returned by the ENA server |
+| `templates/` | Blank XML templates used by `tui.sh` |
+
+### Templates
+
+| File | Description |
+|------|-------------|
+| `templates/blank-umbrella-project.xml` | Blank template for a new standalone umbrella project |
+| `templates/blank-umbrella-project-with-childs.xml` | Blank template for a new umbrella project with child sub-projects |
+| `templates/updated-umbrella-project.xml` | Blank template for updating an existing umbrella project |
+| `templates/new-submission.xml` | Submission action file for creating a new project (`ADD` + `HOLD`) |
+| `templates/update-submission.xml` | Submission action file for updating an existing project (`MODIFY`) |
+| `templates/release-submission.xml` | Submission action file for releasing a project (`RELEASE`) |
 
 ## Prerequisites
 
+- `whiptail` (for the TUI):
+  - pre-installed on most Debian/Ubuntu systems
+  - `apt install whiptail` if missing
 - `curl` (for HTTP submissions):
-  - `apt install curl` (debian/ubuntu)
-- Python3 with the [`untangle`](https://pypi.org/project/untangle/) library:
+  - `apt install curl`
+- Python3 with the [`untangle`](https://pypi.org/project/untangle/) library (for receipt parsing):
   - `apt install python3-untangle` (preferred)
   - `pip install untangle`
 - An [ENA Webin account](https://www.ebi.ac.uk/ena/submit/webin/login)
@@ -43,88 +53,78 @@ Webin-XXXXX password
 
 > **Note:** Keep this file private. It is not tracked by git (add it to `.gitignore`).
 
-## Usage
+## Usage — Interactive TUI
+
+Launch the TUI with:
+
+```bash
+bash tui.sh
+```
+
+The main menu offers five actions:
+
+```
+1. Create a new umbrella project
+2. Update an existing umbrella project
+3. Release an umbrella project
+4. Submit to ENA
+5. Quit
+```
 
 ### 1. Create a new umbrella project
 
-**Without child sub-projects:**
+The TUI will guide you through:
 
-1. Edit `blank-umbrella-project.xml` and fill in the `TODO` fields:
+1. Whether the project has child sub-projects (yes/no)
+2. If yes: how many child slots to generate
+3. A hold date (private until date), defaulting to today + 2 years
 
-   - `center_name`: your institution name
-   - `alias`: a unique local identifier for the project
-   - `NAME`, `TITLE`, `DESCRIPTION`: project metadata
+It generates two working files in the project directory:
 
-2. Edit `new-submission.xml` and set the `HoldUntilDate` to your intended release date (format: `YYYY-MM-DD`).
+- `project.xml` — fill in `center_name`, `alias`, `NAME`, `TITLE`, `DESCRIPTION`, and child accessions if applicable
+- `submission.xml` — `HoldUntilDate` is pre-filled
 
-3. In `umbrella-project-managment.sh`, set:
+### 2. Update an existing umbrella project
 
-   ```bash
-   SUBMISSION_XML="new-submission.xml"
-   UMBRELLA_PROJECT_XML="blank-umbrella-project.xml"
-   ```
+The TUI will ask:
 
-**With child sub-projects:**
+1. Whether you have an existing project XML to use as base (yes/no)
+   - If yes: provide the file path — it will be copied to `project.xml`
+   - If no: a blank update template is generated
+2. Whether to add child sub-projects (yes/no)
+   - If yes: how many child slots to inject
+3. The accession of the project to update (format: `PRJEBxxxxxx`)
+   - The `accession` attribute is set on the `<PROJECT>` element automatically
+   - Works whether the source XML already has an `accession` attribute or not
 
-1. Edit `blank-umbrella-project-with-childs.xml`, fill in the `TODO` fields, and replace `PRJEBxxxxxx` placeholders with the accessions of the existing child projects.
+It generates:
 
-2. Edit `new-submission.xml` and set the `HoldUntilDate` to your intended release date (format: `YYYY-MM-DD`).
+- `project.xml` — fill in fields and/or child accessions as needed; `accession` is pre-filled
+- `submission.xml` — ready to use
 
-3. In `umbrella-project-managment.sh`, set:
+### 3. Release an umbrella project
 
-   ```bash
-   SUBMISSION_XML="new-submission.xml"
-   UMBRELLA_PROJECT_XML="blank-umbrella-project-with-childs.xml"
-   ```
+The TUI will ask for the accession of the project to release (format: `PRJEBxxxxxx`).
+It generates `submission.xml` with the accession pre-filled, then immediately offers
+to proceed to submission.
 
-### 2. Update an existing umbrella project to add child sub-projects
+### 4. Submit to ENA
 
-1. Edit `blank-umbrella-project-with-childs.xml`, replace `PRJEBxxxxxx` placeholders with the accessions of the existing child projects.
+Before submitting, the TUI checks:
 
-2. In `umbrella-project-managment.sh`, set:
+- `.credential` file exists
+- `submission.xml` exists
+- `project.xml` exists (not required for release)
 
-   ```bash
-   SUBMISSION_XML="update-submission.xml"
-   UMBRELLA_PROJECT_XML="blank-umbrella-project-with-childs.xml"
-   ```
+You will be asked to choose between:
 
-### 3. Release (make public) an umbrella project
+- **Test** — validates against the ENA dev server, no data is registered
+- **Production** — real submission; requires explicit typed confirmation (`YES`)
 
-1. Edit `release-submission.xml` and replace `PRJEBxxxxxx` with the accession of the umbrella project to release.
-
-2. In `umbrella-project-managment.sh`, set:
-
-   ```bash
-   SUBMISSION_XML="release-submission.xml"
-   # UMBRELLA_PROJECT_XML is not needed for release
-   ```
-
-### Running the script
-
-There is two ways to run the script:
-
-**Test submission** (validates against the ENA dev server, no data is actually submitted):
-
-```bash
-# In umbrella-project-managment.sh, keep:
-SUBMISSION="false"
-
-bash umbrella-project-managment.sh
-```
-
-**Real submission** (submits to the ENA production server):
-
-```bash
-# In umbrella-project-managment.sh, set:
-SUBMISSION="true"
-
-bash umbrella-project-managment.sh
-```
-
-On success, the server receipt is saved as:
+On success, receipt files are saved:
 
 - `server-receipt.xml` — raw XML receipt from ENA
-- `server-receipt.txt` — tabular summary (alias, accession, external accession)
+- `server-receipt.txt` — tabular summary (alias, accession, status)
 
 ## ENA API Endpoints
 

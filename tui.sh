@@ -8,6 +8,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATES_DIR="$SCRIPT_DIR/templates"
 TITLE="ENA Umbrella Project Manager"
 
+# ENA server URLs
+URL_TEST="https://wwwdev.ebi.ac.uk/ena/submit/drop-box/submit/"
+URL_PROD="https://www.ebi.ac.uk/ena/submit/drop-box/submit/"
+
 
 #================================================================================
 # PREREQUISITES CHECK
@@ -98,6 +102,29 @@ inject_children_xml() {
     awk -v cb="$block" '/[[:space:]]*<\/PROJECT>/ { print cb } { print }' \
         "$xml_file" > "$tmp_file"
     mv "$tmp_file" "$xml_file"
+}
+
+# Ask user for a PRJEB accession, validate format, return in $REPLY
+# Optional argument: custom prompt text
+# Returns 1 if user cancelled
+ask_accession() {
+    local prompt="${1:-Enter the project accession:}"
+    local accession
+    while true; do
+        accession=$(whiptail --title "$TITLE" \
+            --inputbox "$prompt" \
+            8 65 "PRJEB" \
+            3>&1 1>&2 2>&3) || return 1
+
+        if [[ "$accession" =~ ^PRJEB[0-9]+$ ]]; then
+            REPLY=$accession
+            return 0
+        else
+            whiptail --title "$TITLE" \
+                --msgbox "Invalid accession: $accession\n\nExpected format: PRJEBxxxxxx (e.g. PRJEB12345)" \
+                9 65
+        fi
+    done
 }
 
 # Ask for an existing XML file path, validate it exists, return path in $REPLY
@@ -236,28 +263,33 @@ action_update() {
         inject_children_xml "$n_children"
     fi
 
+    # Ask for the accession of the project to update
+    ask_accession "Enter the accession of the project to update:" || return
+    local accession="$REPLY"
+
+    # Patch accession attribute in project.xml (replace if exists, insert if absent)
+    sed -i "/[[:space:]]*<PROJECT[[:space:]]/{
+        /accession=/s/accession=\"[^\"]*\"/accession=\"$accession\"/
+        /accession=/!s/<PROJECT /<PROJECT accession=\"$accession\" /
+    }" "$SCRIPT_DIR/project.xml"
+
     cp "$TEMPLATES_DIR/update-submission.xml" "$SCRIPT_DIR/submission.xml"
 
     local msg
     msg="Working files created in $(basename "$SCRIPT_DIR")/:\n\n"
-    msg+="  project.xml\n"
+    msg+="  project.xml    (accession: $accession)\n"
     msg+="  submission.xml\n\n"
-    if [ "$used_existing" = false ]; then
-        msg+="Edit project.xml and fill in:\n"
-        msg+="  - accession      PRJEBxxxxxx of the project to update\n"
-        msg+="  - center_name    your institution name\n"
-        msg+="  - alias          unique local identifier\n"
-        msg+="  - NAME           short project name\n"
-        msg+="  - TITLE          full project title\n"
-        msg+="  - DESCRIPTION    project description\n"
-    else
-        msg+="project.xml loaded from your existing file.\n"
-    fi
+    msg+="Edit project.xml and fill in:\n"
+    msg+="  - center_name    your institution name\n"
+    msg+="  - alias          unique local identifier\n"
+    msg+="  - NAME           short project name\n"
+    msg+="  - TITLE          full project title\n"
+    msg+="  - DESCRIPTION    project description\n"
     if [ "$n_children" -gt 0 ]; then
         msg+="  - PRJEBxxxxxx    replace with child accessions ($n_children slot(s))\n"
     fi
 
-    whiptail --title "$TITLE" --msgbox "$msg" 22 65
+    whiptail --title "$TITLE" --msgbox "$msg" 21 65
 }
 
 action_submit() {
@@ -334,9 +366,7 @@ action_submit() {
 
     # Select URL
     local url
-    [ "$mode" = "prod" ] \
-        && url="https://www.ebi.ac.uk/ena/submit/drop-box/submit/" \
-        || url="https://wwwdev.ebi.ac.uk/ena/submit/drop-box/submit/"
+    [ "$mode" = "prod" ] && url="$URL_PROD" || url="$URL_TEST"
 
     # Build curl file arguments
     local files="-F SUBMISSION=@${submission_xml}"
@@ -380,22 +410,8 @@ action_submit() {
 }
 
 action_release() {
-    # Ask for project accession
-    local accession
-    while true; do
-        accession=$(whiptail --title "$TITLE" \
-            --inputbox "Enter the accession of the umbrella project to release:" \
-            8 65 "PRJEB" \
-            3>&1 1>&2 2>&3) || return
-
-        if [[ "$accession" =~ ^PRJEB[0-9]+$ ]]; then
-            break
-        else
-            whiptail --title "$TITLE" \
-                --msgbox "Invalid accession: $accession\n\nExpected format: PRJEBxxxxxx (e.g. PRJEB12345)" \
-                9 65
-        fi
-    done
+    ask_accession "Enter the accession of the umbrella project to release:" || return
+    local accession="$REPLY"
 
     # Generate submission.xml with the accession filled in
     sed "s/PRJEBxxxxxx/$accession/" \
