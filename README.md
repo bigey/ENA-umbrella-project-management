@@ -26,8 +26,11 @@ Covered scenarios:
 
 ## Prerequisites
 
-- `curl` (for HTTP submissions)
-- Python 3 with the [`untangle`](https://pypi.org/project/untangle/) library (`pip install untangle`)
+- `curl` (for HTTP submissions):
+  - `apt install curl` (debian/ubuntu)
+- Python3 with the [`untangle`](https://pypi.org/project/untangle/) library:
+  - `apt install python3-untangle` (preferred)
+  - `pip install untangle`
 - An [ENA Webin account](https://www.ebi.ac.uk/ena/submit/webin/login)
 
 ## Setup
@@ -35,7 +38,7 @@ Covered scenarios:
 Create a `.credential` file in the repository root containing your ENA Webin credentials on a single line:
 
 ```
-Webin-XXXXX my-password
+Webin-XXXXX password
 ```
 
 > **Note:** Keep this file private. It is not tracked by git (add it to `.gitignore`).
@@ -65,14 +68,16 @@ Webin-XXXXX my-password
 
 1. Edit `blank-umbrella-project-with-childs.xml`, fill in the `TODO` fields, and replace `PRJEBxxxxxx` placeholders with the accessions of the existing child projects.
 
-2. In `umbrella-project-managment.sh`, set:
+2. Edit `new-submission.xml` and set the `HoldUntilDate` to your intended release date (format: `YYYY-MM-DD`).
+
+3. In `umbrella-project-managment.sh`, set:
 
    ```bash
    SUBMISSION_XML="new-submission.xml"
    UMBRELLA_PROJECT_XML="blank-umbrella-project-with-childs.xml"
    ```
 
-### 2. Update an existing umbrella project with child sub-projects
+### 2. Update an existing umbrella project to add child sub-projects
 
 1. Edit `blank-umbrella-project-with-childs.xml`, replace `PRJEBxxxxxx` placeholders with the accessions of the existing child projects.
 
