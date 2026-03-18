@@ -1,10 +1,10 @@
 # ENA Umbrella Project Management
 
-Template files and scripts to create and manage umbrella projects in the [European Nucleotide Archive (ENA)](https://www.ebi.ac.uk/ena).
-
 ## Overview
 
-ENA umbrella projects are top-level projects used to group related sub-projects (child projects) under a single accession. This repository provides XML templates and scripts to handle the full lifecycle of an umbrella project via the [ENA Webin REST submission API](https://www.ebi.ac.uk/ena/submit/drop-box/submit/).
+ENA umbrella projects are top-level projects used to group related sub-projects (child projects) under a single accession. 
+Umbrella projects can only be created and updated from the command line, by using `curl` to submit XML files you have created.
+This repository provides a simple interactive TUI (`tui.sh`) to generate the necessary XML files (`project.xml` and `submission.xml`) based on user input, and to submit them to the [ENA Webin REST submission API](https://www.ebi.ac.uk/ena/submit/drop-box/submit/).
 
 Covered scenarios:
 
@@ -18,15 +18,15 @@ Covered scenarios:
 |------|-------------|
 | `tui.sh` | Interactive TUI |
 | `parse-receipt.py` | Python script to parse the XML receipt returned by the ENA server |
-| `templates/` | Blank XML templates used by `tui.sh` |
+| `templates/` | XML templates used by `tui.sh` |
 
 ### Templates
 
 | File | Description |
 |------|-------------|
-| `templates/blank-umbrella-project.xml` | Blank template for a new standalone umbrella project |
-| `templates/blank-umbrella-project-with-childs.xml` | Blank template for a new umbrella project with child sub-projects |
-| `templates/updated-umbrella-project.xml` | Blank template for updating an existing umbrella project |
+| `docs/blank-umbrella-project.xml` | Blank template for a new standalone umbrella project |
+| `docs/blank-umbrella-project-with-childs.xml` | Blank template for a new umbrella project with child sub-projects |
+| `docs/updated-umbrella-project.xml` | Blank template for updating an existing umbrella project |
 | `templates/new-submission.xml` | Submission action file for creating a new project (`ADD` + `HOLD`) |
 | `templates/update-submission.xml` | Submission action file for updating an existing project (`MODIFY`) |
 | `templates/release-submission.xml` | Submission action file for releasing a project (`RELEASE`) |
@@ -84,6 +84,8 @@ It generates two working files in the project directory:
 - `project.xml` — fill in `center_name`, `alias`, `NAME`, `TITLE`, `DESCRIPTION`, and child accessions if applicable
 - `submission.xml` — `HoldUntilDate` is pre-filled
 
+Edit project metadata and child accessions as needed, then proceed to submission.
+
 ### 2. Update an existing umbrella project
 
 The TUI will ask:
@@ -101,6 +103,8 @@ It generates:
 
 - `project.xml` — fill in fields and/or child accessions as needed; `accession` is pre-filled
 - `submission.xml` — ready to use
+
+Edit project metadata and child accessions as needed, then proceed to submission.
 
 ### 3. Release an umbrella project
 
@@ -138,3 +142,35 @@ On success, receipt files are saved:
 - [ENA Programmatic Submission Documentation](https://ena-docs.readthedocs.io/en/latest/submit/general-guide/programmatic.html)
 - [ENA Umbrella Projects Guide](https://ena-docs.readthedocs.io/en/latest/submit/project/umbrella.html)
 - [ENA Webin Portal](https://www.ebi.ac.uk/ena/submit/webin/login)
+
+## How to report issues?
+
+We welcome you to report any [issues](https://github.com/bigey/ENA-umbrella-project-management/issues) in this document or script.
+
+## Citing
+
+If you use this document or script in your research, please cite:
+
+BibTeX
+
+```bibtex
+@misc{bigey2026,
+  author       = {Bigey, Frédéric},
+  title        = {ENA Umbrella Project Management},
+  year         = {2026},
+  howpublished = {\url{https://github.com/bigey/ENA-umbrella-project-management}},
+  note         = {accessed 2026-03-18}
+}
+```
+Biblatex
+
+```biblatex
+@software{bigey2026,
+  author       = {Bigey, Frédéric},
+  title        = {ENA Umbrella Project Management},
+  year         = {2026},
+  version      = {v1.0.0},
+  url          = {https://github.com/bigey/ENA-umbrella-project-management},
+  note         = {accessed 2026-03-18}
+}
+```
