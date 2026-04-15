@@ -57,6 +57,8 @@ Then copy it to `.credential`:
 cp .credential.template .credential
 ```
 
+This file is used by `tui.sh` to authenticate with the ENA submission API.
+
 > **Note:** Keep this file private. It is not tracked by git (add it to `.gitignore`).
 
 ## Usage — Interactive TUI
@@ -168,6 +170,7 @@ BibTeX
   note         = {accessed 2026-03-18}
 }
 ```
+
 Biblatex
 
 ```biblatex
