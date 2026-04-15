@@ -24,9 +24,9 @@ Covered scenarios:
 
 | File | Description |
 |------|-------------|
-| `docs/blank-umbrella-project.xml` | Blank template for a new standalone umbrella project |
-| `docs/blank-umbrella-project-with-childs.xml` | Blank template for a new umbrella project with child sub-projects |
-| `docs/updated-umbrella-project.xml` | Blank template for updating an existing umbrella project |
+| `blank-projects/blank-umbrella-project.xml` | Blank template for a new standalone umbrella project |
+| `blank-projects/blank-umbrella-project-with-childs.xml` | Blank template for a new umbrella project with child sub-projects |
+| `blank-projects/updated-umbrella-project.xml` | Blank template for updating an existing umbrella project |
 | `templates/new-submission.xml` | Submission action file for creating a new project (`ADD` + `HOLD`) |
 | `templates/update-submission.xml` | Submission action file for updating an existing project (`MODIFY`) |
 | `templates/release-submission.xml` | Submission action file for releasing a project (`RELEASE`) |
@@ -45,7 +45,7 @@ Covered scenarios:
 
 ## Setup
 
-Create a `.credential` file in the repository root containing your ENA Webin credentials on a single line:
+Modify the `.credential` file with your ENA Webin credentials on a single line:
 
 ```
 Webin-XXXXX password
