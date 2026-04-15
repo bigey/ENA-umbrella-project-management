@@ -45,10 +45,16 @@ Covered scenarios:
 
 ## Setup
 
-Modify the `.credential` file with your ENA Webin credentials on a single line:
+Edit the `.credential.template` file with your ENA Webin credentials on a single line:
 
 ```
 Webin-XXXXX password
+```
+
+Then copy it to `.credential`:
+
+```sh
+cp .credential.template .credential
 ```
 
 > **Note:** Keep this file private. It is not tracked by git (add it to `.gitignore`).
